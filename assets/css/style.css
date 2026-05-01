@@ -1,0 +1,4 @@
+body { background-color: #f8f9fa; }
+.menu-card { transition: transform 0.2s; }
+.menu-card:hover { transform: translateY(-5px); }
+.qr-code img { max-width: 200px; }

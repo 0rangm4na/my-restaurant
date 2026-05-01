@@ -1,0 +1,3 @@
+RewriteEngine On
+# Blok akses langsung ke folder includes
+RewriteRule ^includes/ - [F,L]
