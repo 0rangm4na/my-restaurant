@@ -1,30 +1,42 @@
 <?php
 require_once 'includes/config.php';
 
-// Cek apakah sudah ada tabel 'menus' (salah satu tabel utama), jika sudah jangan buat ulang
-$tbl_check = mysqli_query($conn, "SHOW TABLES LIKE 'menus'");
-if (mysqli_num_rows($tbl_check) > 0) {
-    die("Database sudah terinstall. <a href='index.php'>Ke halaman utama</a>");
+// Cek apakah tabel 'menus' sudah ada
+try {
+    $stmt = $conn->query("SHOW TABLES LIKE 'menus'");
+    if ($stmt->rowCount() > 0) {
+        die("Database sudah terinstall. <a href='index.php'>Ke halaman utama</a>");
+    }
+} catch (PDOException $e) {
+    // Tabel belum ada, lanjutkan install
 }
 
 // Baca file SQL
-$sql = file_get_contents('database/myrestaurant.sql');
-if (!$sql) {
+$sqlFile = 'database/myrestaurant.sql';
+if (!file_exists($sqlFile)) {
     die("File SQL tidak ditemukan.");
 }
 
-// Eksekusi query dipisahkan per titik koma
+$sql = file_get_contents($sqlFile);
+
+// Jalankan query satu per satu
 $queries = explode(';', $sql);
 foreach ($queries as $query) {
     $query = trim($query);
     if (!empty($query)) {
-        mysqli_query($conn, $query) or die("Error: " . mysqli_error($conn) . "<br>Query: " . $query);
+        try {
+            $conn->exec($query);
+        } catch (PDOException $e) {
+            die("Error: " . $e->getMessage() . "<br>Query: " . $query);
+        }
     }
 }
 
-// Hash password untuk admin default: admin123
+// Insert admin default
 $admin_user = 'admin';
 $admin_pass = password_hash('admin123', PASSWORD_DEFAULT);
-mysqli_query($conn, "INSERT INTO users (username, password) VALUES ('$admin_user', '$admin_pass')");
+$stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (:user, :pass)");
+$stmt->execute(['user' => $admin_user, 'pass' => $admin_pass]);
 
 echo "Installasi berhasil! <a href='login.php'>Login Admin</a>";
+?>
