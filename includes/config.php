@@ -1,15 +1,12 @@
 <?php
-// Konfigurasi database menggunakan PDO
-$host = getenv('DB_HOST') ?: 'localhost';
-$port = getenv('DB_PORT') ?: '3306';
-$user = getenv('DB_USER') ?: 'root';
-$pass = getenv('DB_PASS') ?: '';
-$db   = getenv('DB_NAME') ?: 'myrestaurant';
+// Konfigurasi database SQLite
+$db_path = __DIR__ . '/../database/myrestaurant.sqlite';
 
 try {
-    $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
-    $conn = new PDO($dsn, $user, $pass);
+    $conn = new PDO("sqlite:$db_path");
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Aktifkan foreign key support untuk SQLite
+    $conn->exec("PRAGMA foreign_keys = ON");
 } catch (PDOException $e) {
     die("Koneksi gagal: " . $e->getMessage());
 }
